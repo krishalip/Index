@@ -1,0 +1,673 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Partners Healthcare - Interactive Sensitivity Analysis</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 32px;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 16px;
+            opacity: 0.9;
+        }
+
+        .content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            padding: 30px;
+        }
+
+        .panel {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 25px;
+            border: 2px solid #e9ecef;
+        }
+
+        .panel h2 {
+            color: #1e3c72;
+            margin-bottom: 20px;
+            font-size: 24px;
+            border-bottom: 3px solid #667eea;
+            padding-bottom: 10px;
+        }
+
+        .slider-group {
+            margin-bottom: 25px;
+        }
+
+        .slider-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .slider-label .value {
+            color: #667eea;
+            font-size: 18px;
+        }
+
+        input[type="range"] {
+            width: 100%;
+            height: 8px;
+            border-radius: 5px;
+            background: #d3d3d3;
+            outline: none;
+            -webkit-appearance: none;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: #667eea;
+            cursor: pointer;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+        }
+
+        input[type="range"]::-moz-range-thumb {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: #667eea;
+            cursor: pointer;
+            border: none;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+        }
+
+        .base-indicator {
+            font-size: 12px;
+            color: #666;
+            margin-top: 4px;
+        }
+
+        .results {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 15px;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .allocation-display {
+            font-size: 72px;
+            font-weight: bold;
+            margin: 20px 0;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .allocation-label {
+            font-size: 24px;
+            margin-bottom: 10px;
+            opacity: 0.9;
+        }
+
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-top: 30px;
+        }
+
+        .metric-card {
+            background: rgba(255,255,255,0.15);
+            padding: 15px;
+            border-radius: 10px;
+            backdrop-filter: blur(10px);
+        }
+
+        .metric-label {
+            font-size: 14px;
+            opacity: 0.9;
+            margin-bottom: 5px;
+        }
+
+        .metric-value {
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        .portfolio-breakdown {
+            background: white;
+            color: #333;
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+
+        .portfolio-breakdown h3 {
+            color: #1e3c72;
+            margin-bottom: 15px;
+            font-size: 18px;
+        }
+
+        .asset-bar {
+            margin-bottom: 12px;
+        }
+
+        .asset-name {
+            display: flex;
+            justify-content: space-between;
+            font-size: 14px;
+            margin-bottom: 5px;
+            font-weight: 600;
+        }
+
+        .bar-container {
+            width: 100%;
+            height: 25px;
+            background: #e9ecef;
+            border-radius: 5px;
+            overflow: hidden;
+        }
+
+        .bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            transition: width 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .reset-button {
+            width: 100%;
+            padding: 15px;
+            background: white;
+            color: #667eea;
+            border: 2px solid white;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 20px;
+            transition: all 0.3s ease;
+        }
+
+        .reset-button:hover {
+            background: #667eea;
+            color: white;
+        }
+
+        .insights {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 15px;
+            margin-top: 20px;
+            border-radius: 5px;
+        }
+
+        .insights h3 {
+            color: #856404;
+            margin-bottom: 10px;
+            font-size: 16px;
+        }
+
+        .insights p {
+            color: #856404;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .change-indicator {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 5px;
+            font-size: 12px;
+            font-weight: bold;
+            margin-left: 10px;
+        }
+
+        .increase {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .decrease {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .neutral {
+            background: #d1ecf1;
+            color: #0c5460;
+        }
+
+        @media (max-width: 968px) {
+            .content {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎯 Partners Healthcare: Interactive Sensitivity Analysis</h1>
+            <p>Adjust parameters below to see how optimal commodities allocation changes in real-time</p>
+        </div>
+
+        <div class="content">
+            <!-- Left Panel: Controls -->
+            <div class="panel">
+                <h2>📊 Parameter Controls</h2>
+                
+                <div class="slider-group">
+                    <div class="slider-label">
+                        <span>Expected Return</span>
+                        <span class="value" id="return-value">10.05%</span>
+                    </div>
+                    <input type="range" id="return-slider" min="5" max="15" step="0.05" value="10.05">
+                    <div class="base-indicator">Base: 10.05% | Range: 5% - 15%</div>
+                </div>
+
+                <div class="slider-group">
+                    <div class="slider-label">
+                        <span>Volatility (StDev)</span>
+                        <span class="value" id="volatility-value">18.43%</span>
+                    </div>
+                    <input type="range" id="volatility-slider" min="10" max="30" step="0.1" value="18.43">
+                    <div class="base-indicator">Base: 18.43% | Range: 10% - 30%</div>
+                </div>
+
+                <div class="slider-group">
+                    <div class="slider-label">
+                        <span>Correlation with US Equity</span>
+                        <span class="value" id="corr-us-value">-0.02</span>
+                    </div>
+                    <input type="range" id="corr-us-slider" min="-30" max="30" step="1" value="-2">
+                    <div class="base-indicator">Base: -0.02 | Range: -0.30 to +0.30</div>
+                </div>
+
+                <div class="slider-group">
+                    <div class="slider-label">
+                        <span>Correlation with Foreign Equity</span>
+                        <span class="value" id="corr-foreign-value">0.01</span>
+                    </div>
+                    <input type="range" id="corr-foreign-slider" min="-30" max="30" step="1" value="1">
+                    <div class="base-indicator">Base: 0.01 | Range: -0.30 to +0.30</div>
+                </div>
+
+                <div class="slider-group">
+                    <div class="slider-label">
+                        <span>Correlation with Bonds</span>
+                        <span class="value" id="corr-bonds-value">-0.07</span>
+                    </div>
+                    <input type="range" id="corr-bonds-slider" min="-30" max="30" step="1" value="-7">
+                    <div class="base-indicator">Base: -0.07 | Range: -0.30 to +0.30</div>
+                </div>
+
+                <button class="reset-button" onclick="resetToBase()">↺ Reset to Base Case</button>
+
+                <div class="insights" id="insights">
+                    <h3>💡 Key Insight</h3>
+                    <p id="insight-text">Base case shows optimal allocation of 26.16% to commodities. Adjust parameters to explore sensitivity.</p>
+                </div>
+            </div>
+
+            <!-- Right Panel: Results -->
+            <div class="panel">
+                <h2>📈 Optimal Portfolio Results</h2>
+                
+                <div class="results">
+                    <div class="allocation-label">Optimal Commodities Allocation</div>
+                    <div class="allocation-display" id="allocation-display">26.16%</div>
+                    <div id="change-badge"></div>
+
+                    <div class="metrics-grid">
+                        <div class="metric-card">
+                            <div class="metric-label">Portfolio Return</div>
+                            <div class="metric-value" id="portfolio-return">11.23%</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-label">Portfolio StDev</div>
+                            <div class="metric-value" id="portfolio-stdev">10.01%</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-label">Sharpe Ratio</div>
+                            <div class="metric-value" id="sharpe-ratio">0.8026</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-label">Change from Base</div>
+                            <div class="metric-value" id="change-from-base">0.00 pp</div>
+                        </div>
+                    </div>
+
+                    <div class="portfolio-breakdown">
+                        <h3>Portfolio Asset Allocation</h3>
+                        <div class="asset-bar">
+                            <div class="asset-name">
+                                <span>US Equity</span>
+                                <span id="us-weight">40.61%</span>
+                            </div>
+                            <div class="bar-container">
+                                <div class="bar-fill" id="us-bar" style="width: 40.61%">40.61%</div>
+                            </div>
+                        </div>
+                        <div class="asset-bar">
+                            <div class="asset-name">
+                                <span>Foreign Equity</span>
+                                <span id="foreign-weight">22.15%</span>
+                            </div>
+                            <div class="bar-container">
+                                <div class="bar-fill" id="foreign-bar" style="width: 22.15%">22.15%</div>
+                            </div>
+                        </div>
+                        <div class="asset-bar">
+                            <div class="asset-name">
+                                <span>Bonds</span>
+                                <span id="bonds-weight">11.08%</span>
+                            </div>
+                            <div class="bar-container">
+                                <div class="bar-fill" id="bonds-bar" style="width: 11.08%">11.08%</div>
+                            </div>
+                        </div>
+                        <div class="asset-bar">
+                            <div class="asset-name">
+                                <span>Commodities</span>
+                                <span id="comm-weight">26.16%</span>
+                            </div>
+                            <div class="bar-container">
+                                <div class="bar-fill" id="comm-bar" style="width: 26.16%; background: linear-gradient(90deg, #ffc107, #ff6b35);">26.16%</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Base case values
+        const BASE_CASE = {
+            return: 10.05,
+            volatility: 18.43,
+            corrUS: -0.02,
+            corrForeign: 0.01,
+            corrBonds: -0.07,
+            allocation: 26.16
+        };
+
+        // Asset data
+        const ASSETS = {
+            usEquity: { return: 12.94, stdev: 15.21 },
+            foreignEquity: { return: 12.42, stdev: 14.44 },
+            bonds: { return: 5.40, stdev: 11.10 },
+            reits: { return: 9.44, stdev: 13.54 },
+            commodities: { return: 10.05, stdev: 18.43 }
+        };
+
+        const RF_RATE = 3.2;
+        const BASE_LTP_WEIGHTS = [0.55, 0.30, 0.15];
+
+        // Correlation matrix (will be updated)
+        let corrMatrix = [
+            [1.00, 0.62, 0.25, 0.56, -0.02],
+            [0.62, 1.00, 0.06, 0.40, 0.01],
+            [0.25, 0.06, 1.00, 0.16, -0.07],
+            [0.56, 0.40, 0.16, 1.00, -0.01],
+            [-0.02, 0.01, -0.07, -0.01, 1.00]
+        ];
+
+        // Get slider elements
+        const returnSlider = document.getElementById('return-slider');
+        const volatilitySlider = document.getElementById('volatility-slider');
+        const corrUSSlider = document.getElementById('corr-us-slider');
+        const corrForeignSlider = document.getElementById('corr-foreign-slider');
+        const corrBondsSlider = document.getElementById('corr-bonds-slider');
+
+        // Add event listeners
+        returnSlider.addEventListener('input', updateCalculations);
+        volatilitySlider.addEventListener('input', updateCalculations);
+        corrUSSlider.addEventListener('input', updateCalculations);
+        corrForeignSlider.addEventListener('input', updateCalculations);
+        corrBondsSlider.addEventListener('input', updateCalculations);
+
+        function updateCalculations() {
+            // Get current values
+            const currentReturn = parseFloat(returnSlider.value);
+            const currentVolatility = parseFloat(volatilitySlider.value);
+            const currentCorrUS = parseInt(corrUSSlider.value) / 100;
+            const currentCorrForeign = parseInt(corrForeignSlider.value) / 100;
+            const currentCorrBonds = parseInt(corrBondsSlider.value) / 100;
+
+            // Update display values
+            document.getElementById('return-value').textContent = currentReturn.toFixed(2) + '%';
+            document.getElementById('volatility-value').textContent = currentVolatility.toFixed(2) + '%';
+            document.getElementById('corr-us-value').textContent = currentCorrUS.toFixed(2);
+            document.getElementById('corr-foreign-value').textContent = currentCorrForeign.toFixed(2);
+            document.getElementById('corr-bonds-value').textContent = currentCorrBonds.toFixed(2);
+
+            // Update correlation matrix
+            corrMatrix[0][4] = currentCorrUS;
+            corrMatrix[4][0] = currentCorrUS;
+            corrMatrix[1][4] = currentCorrForeign;
+            corrMatrix[4][1] = currentCorrForeign;
+            corrMatrix[2][4] = currentCorrBonds;
+            corrMatrix[4][2] = currentCorrBonds;
+
+            // Optimize portfolio
+            const result = optimizePortfolio(currentReturn, currentVolatility);
+
+            // Update displays
+            updateDisplay(result);
+            updateInsights(currentReturn, currentVolatility, currentCorrUS, result);
+        }
+
+        function optimizePortfolio(commReturn, commVolatility) {
+            // Simple numerical optimization using grid search
+            let bestWeight = 0;
+            let bestSharpe = -Infinity;
+            let bestMetrics = {};
+
+            // Grid search from 0% to 60% in 0.5% increments
+            for (let w = 0; w <= 0.60; w += 0.005) {
+                const metrics = calculatePortfolioMetrics(w, commReturn, commVolatility);
+                if (metrics.sharpe > bestSharpe) {
+                    bestSharpe = metrics.sharpe;
+                    bestWeight = w;
+                    bestMetrics = metrics;
+                }
+            }
+
+            return {
+                commoditiesWeight: bestWeight,
+                ...bestMetrics
+            };
+        }
+
+        function calculatePortfolioMetrics(commoditiesWeight, commReturn, commVolatility) {
+            // Calculate weights
+            const ltpWeight = 1 - commoditiesWeight;
+            const weights = [
+                ltpWeight * BASE_LTP_WEIGHTS[0],  // US Equity
+                ltpWeight * BASE_LTP_WEIGHTS[1],  // Foreign Equity
+                ltpWeight * BASE_LTP_WEIGHTS[2],  // Bonds
+                0,                                  // REITs
+                commoditiesWeight                   // Commodities
+            ];
+
+            // Expected returns vector
+            const returns = [
+                ASSETS.usEquity.return,
+                ASSETS.foreignEquity.return,
+                ASSETS.bonds.return,
+                ASSETS.reits.return,
+                commReturn
+            ];
+
+            // Volatilities vector
+            const volatilities = [
+                ASSETS.usEquity.stdev,
+                ASSETS.foreignEquity.stdev,
+                ASSETS.bonds.stdev,
+                ASSETS.reits.stdev,
+                commVolatility
+            ];
+
+            // Calculate portfolio return
+            let portfolioReturn = 0;
+            for (let i = 0; i < 5; i++) {
+                portfolioReturn += weights[i] * returns[i];
+            }
+
+            // Calculate portfolio variance
+            let portfolioVariance = 0;
+            for (let i = 0; i < 5; i++) {
+                for (let j = 0; j < 5; j++) {
+                    const cov = corrMatrix[i][j] * volatilities[i] * volatilities[j];
+                    portfolioVariance += weights[i] * weights[j] * cov;
+                }
+            }
+
+            const portfolioStdev = Math.sqrt(portfolioVariance);
+            const sharpe = (portfolioReturn - RF_RATE) / portfolioStdev;
+
+            return {
+                return: portfolioReturn,
+                stdev: portfolioStdev,
+                sharpe: sharpe,
+                weights: weights
+            };
+        }
+
+        function updateDisplay(result) {
+            const allocation = result.commoditiesWeight * 100;
+            const changeFromBase = allocation - BASE_CASE.allocation;
+
+            // Update main allocation display
+            document.getElementById('allocation-display').textContent = allocation.toFixed(2) + '%';
+            
+            // Update metrics
+            document.getElementById('portfolio-return').textContent = result.return.toFixed(2) + '%';
+            document.getElementById('portfolio-stdev').textContent = result.stdev.toFixed(2) + '%';
+            document.getElementById('sharpe-ratio').textContent = result.sharpe.toFixed(4);
+            document.getElementById('change-from-base').textContent = 
+                (changeFromBase >= 0 ? '+' : '') + changeFromBase.toFixed(2) + ' pp';
+
+            // Update change badge
+            let badgeHTML = '';
+            if (Math.abs(changeFromBase) < 0.5) {
+                badgeHTML = '<span class="change-indicator neutral">≈ Base Case</span>';
+            } else if (changeFromBase > 0) {
+                badgeHTML = `<span class="change-indicator increase">↑ ${changeFromBase.toFixed(2)} pp above base</span>`;
+            } else {
+                badgeHTML = `<span class="change-indicator decrease">↓ ${Math.abs(changeFromBase).toFixed(2)} pp below base</span>`;
+            }
+            document.getElementById('change-badge').innerHTML = badgeHTML;
+
+            // Update portfolio breakdown
+            const usWeight = result.weights[0] * 100;
+            const foreignWeight = result.weights[1] * 100;
+            const bondsWeight = result.weights[2] * 100;
+            const commWeight = result.weights[4] * 100;
+
+            updateAssetBar('us', usWeight);
+            updateAssetBar('foreign', foreignWeight);
+            updateAssetBar('bonds', bondsWeight);
+            updateAssetBar('comm', commWeight);
+        }
+
+        function updateAssetBar(asset, weight) {
+            const weightText = weight.toFixed(2) + '%';
+            document.getElementById(`${asset}-weight`).textContent = weightText;
+            document.getElementById(`${asset}-bar`).style.width = weight + '%';
+            document.getElementById(`${asset}-bar`).textContent = weightText;
+        }
+
+        function updateInsights(currentReturn, currentVolatility, currentCorrUS, result) {
+            const allocation = result.commoditiesWeight * 100;
+            const changeFromBase = allocation - BASE_CASE.allocation;
+            
+            let insight = '';
+
+            // Determine which parameter changed most
+            const returnDiff = Math.abs(currentReturn - BASE_CASE.return);
+            const volDiff = Math.abs(currentVolatility - BASE_CASE.volatility);
+            const corrDiff = Math.abs(currentCorrUS - BASE_CASE.corrUS);
+
+            if (returnDiff > 1) {
+                if (currentReturn > BASE_CASE.return) {
+                    insight = `Higher expected return (${currentReturn.toFixed(2)}% vs ${BASE_CASE.return}%) increases allocation. Each 1% increase in return adds ~2.8 pp to allocation.`;
+                } else {
+                    insight = `Lower expected return (${currentReturn.toFixed(2)}% vs ${BASE_CASE.return}%) decreases allocation. This shows high sensitivity to return assumptions!`;
+                }
+            } else if (volDiff > 2) {
+                if (currentVolatility > BASE_CASE.volatility) {
+                    insight = `Higher volatility (${currentVolatility.toFixed(2)}% vs ${BASE_CASE.volatility}%) reduces allocation. Riskier assets get smaller allocations.`;
+                } else {
+                    insight = `Lower volatility (${currentVolatility.toFixed(2)}% vs ${BASE_CASE.volatility}%) increases allocation significantly. Lower risk allows higher exposure.`;
+                }
+            } else if (corrDiff > 0.1) {
+                if (currentCorrUS > BASE_CASE.corrUS) {
+                    insight = `Higher correlation with US equity (${currentCorrUS.toFixed(2)} vs ${BASE_CASE.corrUS.toFixed(2)}) reduces diversification benefit and lowers allocation.`;
+                } else {
+                    insight = `More negative correlation (${currentCorrUS.toFixed(2)} vs ${BASE_CASE.corrUS.toFixed(2)}) enhances diversification benefit and increases allocation.`;
+                }
+            } else if (Math.abs(changeFromBase) < 0.5) {
+                insight = `Current settings produce allocation near base case (${allocation.toFixed(2)}%). Try larger parameter changes to see stronger effects.`;
+            } else {
+                insight = `Allocation shifted ${Math.abs(changeFromBase).toFixed(2)} pp from base case. Expected return and volatility have the strongest impact.`;
+            }
+
+            document.getElementById('insight-text').textContent = insight;
+        }
+
+        function resetToBase() {
+            returnSlider.value = BASE_CASE.return;
+            volatilitySlider.value = BASE_CASE.volatility;
+            corrUSSlider.value = BASE_CASE.corrUS * 100;
+            corrForeignSlider.value = BASE_CASE.corrForeign * 100;
+            corrBondsSlider.value = BASE_CASE.corrBonds * 100;
+            
+            updateCalculations();
+        }
+
+        // Initialize on load
+        window.onload = function() {
+            updateCalculations();
+        };
+    </script>
+</body>
+</html>
